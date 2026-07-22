@@ -1,0 +1,15 @@
+spring:
+  main:
+    banner-mode: off
+  jpa:
+    show-sql: false
+  data:
+    redis:
+      lettuce:
+        pool:
+          enabled: false
+
+logging:
+  level:
+    org.hibernate.sql: WARN
+    com.nextbuy.passport: INFO

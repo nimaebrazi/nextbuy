@@ -1,0 +1,4 @@
+logging:
+  level:
+    com.nextbuy.passport: DEBUG
+    org.hibernate.SQL: DEBUG
