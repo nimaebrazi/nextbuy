@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///adhub
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
