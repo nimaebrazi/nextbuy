@@ -18,6 +18,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @RequiredArgsConstructor
 public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
+    private final static String DEFAULT_MESSAGE = "operation.success";
+
     private final MessageSource messageSource;
 
     @Override
@@ -57,7 +59,7 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
     private String resolveMessage(MethodParameter returnType) {
         SuccessMessage ann = returnType.getMethodAnnotation(SuccessMessage.class);
-        String key = ann != null ? ann.value() : "operation.success";
+        String key = ann != null ? ann.value() : DEFAULT_MESSAGE;
         Object[] args = ann != null ? ann.args() : null;
         return messageSource.getMessage(
                 key,

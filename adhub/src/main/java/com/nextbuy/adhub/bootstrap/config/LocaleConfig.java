@@ -33,6 +33,8 @@ public class LocaleConfig {
         source.setBasenames(
                 "classpath:messages/messages",
                 "classpath:messages/ad",
+                "classpath:messages/location",
+                "classpath:messages/category",
                 "classpath:messages/validation"
         );
         source.setDefaultEncoding(StandardCharsets.UTF_8.name());

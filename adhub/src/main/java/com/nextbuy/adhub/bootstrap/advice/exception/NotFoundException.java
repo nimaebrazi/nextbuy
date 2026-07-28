@@ -10,4 +10,8 @@ public class NotFoundException extends BaseException {
     public NotFoundException(String resource, String errorCode) {
         super(resource + " not found", errorCode, HttpStatus.NOT_FOUND.value());
     }
+
+    public NotFoundException(String resource, String errorCode, String messageKey, Object... args) {
+        super(resource + " not found", errorCode, HttpStatus.NOT_FOUND.value(), messageKey, args);
+    }
 }
