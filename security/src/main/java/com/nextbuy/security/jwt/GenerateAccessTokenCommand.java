@@ -1,13 +1,12 @@
-package com.nextbuy.passport.dto;
-
+package com.nextbuy.security.jwt;
 
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
-public record GenerateJwtTokenDto(
+public record GenerateAccessTokenCommand(
         long userId,
         String email,
-        Collection<? extends GrantedAuthority> auths
+        Collection<? extends GrantedAuthority> authorities
 ) {
 }

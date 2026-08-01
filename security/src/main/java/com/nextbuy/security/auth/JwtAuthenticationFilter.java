@@ -1,6 +1,7 @@
-package com.nextbuy.passport.configuration;
+package com.nextbuy.security.auth;
 
-import com.nextbuy.passport.service.JwtService;
+import com.nextbuy.security.jwt.JwtClaims;
+import com.nextbuy.security.jwt.JwtService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,13 +17,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
@@ -46,24 +49,44 @@ public class JwtFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private Principals toPrincipals(JwtService.JwtClaimsDto claims) {
+    private Principals toPrincipals(JwtClaims claims) {
         return new Principals(
                 claims.userId(),
                 claims.email(),
-                parseAuthorities(claims.roles())
+                parseAuthorities(claims.roles(), claims.permissions())
         );
     }
 
 
-    private List<SimpleGrantedAuthority> parseAuthorities(String roles) {
-        if (roles == null || roles.isBlank()) {
+    private List<SimpleGrantedAuthority> parseAuthorities(String roles, String permissions) {
+        // Backward compatibility: legacy tokens may include mixed authorities only in roles.
+        if (permissions == null || permissions.isBlank()) {
+            return parseAuthoritiesCsv(roles);
+        }
+
+        Set<String> mergedAuthorities = new LinkedHashSet<>();
+        mergedAuthorities.addAll(parseAuthorityNames(roles));
+        mergedAuthorities.addAll(parseAuthorityNames(permissions));
+
+        return mergedAuthorities.stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+    }
+
+    private List<SimpleGrantedAuthority> parseAuthoritiesCsv(String csv) {
+        return parseAuthorityNames(csv).stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+    }
+
+    private List<String> parseAuthorityNames(String csv) {
+        if (csv == null || csv.isBlank()) {
             return List.of();
         }
 
-        return Arrays.stream(roles.split(","))
+        return Arrays.stream(csv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .map(SimpleGrantedAuthority::new)
                 .toList();
     }
 
@@ -89,8 +112,5 @@ public class JwtFilter extends OncePerRequestFilter {
             String email,
             @Nonnull List<SimpleGrantedAuthority> authorities
     ) {
-    }
-
-    public record AuthPrincipal(Long id, String email) {
     }
 }

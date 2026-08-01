@@ -1,0 +1,2 @@
+com.nextbuy.security.autoconfigure.NextbuySecurityAutoConfiguration
+com.nextbuy.security.autoconfigure.HeaderAuthenticationAutoConfiguration

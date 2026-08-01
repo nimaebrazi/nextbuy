@@ -1,7 +1,5 @@
-package com.nextbuy.passport.service;
+package com.nextbuy.security.jwt;
 
-import com.nextbuy.passport.configuration.JwtConfiguration;
-import com.nextbuy.passport.dto.GenerateJwtTokenDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -15,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
@@ -23,12 +22,13 @@ public class JwtService {
 
     public static final String CLAIM_EMAIL = "email";
     public static final String CLAIM_ROLES = "roles";
+    public static final String CLAIM_PERMISSIONS = "permissions";
 
-    private final JwtConfiguration jwtConfiguration;
+    private final JwtProperties jwtProperties;
 
-    public String generateAccessToken(GenerateJwtTokenDto req) {
+    public String generateAccessToken(GenerateAccessTokenCommand req) {
         long now = System.currentTimeMillis();
-        long expirationMillis = jwtConfiguration.accessTokenExpiry() * 1000L;
+        long expirationMillis = jwtProperties.accessTokenExpiry() * 1000L;
 
         return Jwts.builder()
                 .subject(String.valueOf(req.userId()))
@@ -39,15 +39,21 @@ public class JwtService {
                 .compact();
     }
 
-    private Map<String, Object> createClaimsMap(GenerateJwtTokenDto req) {
-
-        String rolesString = req.auths().stream()
+    private Map<String, Object> createClaimsMap(GenerateAccessTokenCommand req) {
+        String rolesString = req.authorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .filter(matchesRoleAuthority())
+                .collect(Collectors.joining(","));
+        String permissionsString = req.authorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(matchesRoleAuthority().negate())
+                .filter(matchesAuthenticationFactorAuthority().negate())
                 .collect(Collectors.joining(","));
 
         return Map.of(
                 CLAIM_EMAIL, req.email(),
-                CLAIM_ROLES, rolesString
+                CLAIM_ROLES, rolesString,
+                CLAIM_PERMISSIONS, permissionsString
         );
     }
 
@@ -55,13 +61,13 @@ public class JwtService {
         return extractToken(token).isPresent();
     }
 
-    public Optional<JwtClaimsDto> extractToken(String token) {
+    public Optional<JwtClaims> extractToken(String token) {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
 
         try {
-            return Optional.of(toJwtClaimsDto(parseClaims(token)));
+            return Optional.of(toJwtClaims(parseClaims(token)));
         } catch (JwtException | IllegalArgumentException ex) {
             return Optional.empty();
         }
@@ -75,23 +81,26 @@ public class JwtService {
                 .getPayload();
     }
 
-    private JwtClaimsDto toJwtClaimsDto(Claims claims) {
-        return new JwtClaimsDto(
+    private JwtClaims toJwtClaims(Claims claims) {
+        return new JwtClaims(
+                Long.valueOf(claims.getSubject()),
                 claims.get(CLAIM_EMAIL, String.class),
                 claims.get(CLAIM_ROLES, String.class),
-                Long.valueOf(claims.getSubject())
+                claims.get(CLAIM_PERMISSIONS, String.class)
         );
     }
 
+    private Predicate<String> matchesRoleAuthority() {
+        return authority -> authority != null && authority.startsWith("ROLE_");
+    }
+
+    /** Spring Security 7 auth-factor markers (e.g. FACTOR_PASSWORD), not business permissions. */
+    private Predicate<String> matchesAuthenticationFactorAuthority() {
+        return authority -> authority != null && authority.startsWith("FACTOR_");
+    }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtConfiguration.secret().getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public record JwtClaimsDto(
-            String email,
-            String roles,
-            Long userId
-    ) {
-    }
 }
