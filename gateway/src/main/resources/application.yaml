@@ -7,3 +7,14 @@ spring:
   main:
     banner-mode: off
 
+jwt:
+  secret: xTmCfNhvKwErW4qixunjfNRyAts4frpY
+  access-token-expiry: 1800
+  refresh-token-expiry: 4233600
+
+nextbuy:
+  gateway:
+    adhub-uri: "${ADHUB_URI:http://localhost:9091}"
+    passport-uri: "${PASSPORT_URI:http://localhost:9090}"
+  security:
+    identity-headers: true
