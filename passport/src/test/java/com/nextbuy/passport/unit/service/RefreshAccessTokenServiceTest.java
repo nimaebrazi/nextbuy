@@ -5,16 +5,19 @@ import com.nextbuy.passport.common.advice.exception.BusinessException;
 import com.nextbuy.passport.domain.RefreshToken;
 import com.nextbuy.passport.domain.User;
 import com.nextbuy.passport.dto.AuthTokenResponseDto;
-import com.nextbuy.passport.dto.GenerateJwtTokenDto;
 import com.nextbuy.passport.dto.RefreshTokenContextDto;
 import com.nextbuy.passport.dto.RefreshTokenRequestDto;
 import com.nextbuy.passport.exceptions.AuthExceptions;
 import com.nextbuy.passport.repository.UserRepository;
-import com.nextbuy.passport.service.JwtService;
 import com.nextbuy.passport.service.RefreshAccessTokenService;
 import com.nextbuy.passport.service.RefreshTokenService;
-import com.nextbuy.passport.support.fixtures.*;
-
+import com.nextbuy.passport.support.fixtures.AuthContexts;
+import com.nextbuy.passport.support.fixtures.AuthTokens;
+import com.nextbuy.passport.support.fixtures.RefreshTokenRequests;
+import com.nextbuy.passport.support.fixtures.RefreshTokens;
+import com.nextbuy.passport.support.fixtures.Users;
+import com.nextbuy.security.jwt.GenerateAccessTokenCommand;
+import com.nextbuy.security.jwt.JwtService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -28,11 +31,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @Tags({@Tag("unit"), @Tag("service")})
 @ExtendWith(MockitoExtension.class)
@@ -69,7 +74,7 @@ public class RefreshAccessTokenServiceTest {
 
         verify(refreshTokenService).validateAndGet(request.refreshToken());
         verify(userRepository).findByEmail(emailFromToken);
-        verify(jwtService, never()).generateAccessToken(any(GenerateJwtTokenDto.class));
+        verify(jwtService, never()).generateAccessToken(any(GenerateAccessTokenCommand.class));
         verify(refreshTokenService, never()).rotate(any(RefreshToken.class), any(User.class), any(RefreshTokenContextDto.class));
         verifyNoMoreInteractions(jwtService, refreshTokenService, userRepository);
     }
@@ -91,7 +96,7 @@ public class RefreshAccessTokenServiceTest {
 
         verify(refreshTokenService).validateAndGet(request.refreshToken());
         verify(userRepository, never()).findByEmail(any());
-        verify(jwtService, never()).generateAccessToken(any(GenerateJwtTokenDto.class));
+        verify(jwtService, never()).generateAccessToken(any(GenerateAccessTokenCommand.class));
         verify(refreshTokenService, never()).rotate(any(RefreshToken.class), any(User.class), any(RefreshTokenContextDto.class));
         verifyNoMoreInteractions(jwtService, refreshTokenService, userRepository);
     }
@@ -113,7 +118,7 @@ public class RefreshAccessTokenServiceTest {
 
         verify(refreshTokenService).validateAndGet(request.refreshToken());
         verify(userRepository, never()).findByEmail(any());
-        verify(jwtService, never()).generateAccessToken(any(GenerateJwtTokenDto.class));
+        verify(jwtService, never()).generateAccessToken(any(GenerateAccessTokenCommand.class));
         verify(refreshTokenService, never()).rotate(any(RefreshToken.class), any(User.class), any(RefreshTokenContextDto.class));
         verifyNoMoreInteractions(jwtService, refreshTokenService, userRepository);
     }
@@ -132,7 +137,7 @@ public class RefreshAccessTokenServiceTest {
 
         given(refreshTokenService.validateAndGet(request.refreshToken())).willReturn(refreshToken);
         given(userRepository.findByEmail(emailFromToken)).willReturn(Optional.of(user));
-        given(jwtService.generateAccessToken(any(GenerateJwtTokenDto.class))).willReturn(accessToken);
+        given(jwtService.generateAccessToken(any(GenerateAccessTokenCommand.class))).willReturn(accessToken);
         given(refreshTokenService.rotate(refreshToken, user, context)).willReturn(newRefreshToken);
 
         AuthTokenResponseDto response = refreshAccessTokenService.execute(request, context);
@@ -144,9 +149,9 @@ public class RefreshAccessTokenServiceTest {
         verify(refreshTokenService).rotate(refreshToken, user, context);
 
 
-        ArgumentCaptor<GenerateJwtTokenDto> jwtCaptor = ArgumentCaptor.forClass(GenerateJwtTokenDto.class);
+        ArgumentCaptor<GenerateAccessTokenCommand> jwtCaptor = ArgumentCaptor.forClass(GenerateAccessTokenCommand.class);
         verify(jwtService).generateAccessToken(jwtCaptor.capture());
-        GenerateJwtTokenDto jwtRequest = jwtCaptor.getValue();
+        GenerateAccessTokenCommand jwtRequest = jwtCaptor.getValue();
         assertThat(jwtRequest.userId()).isEqualTo(user.getId());
         assertThat(jwtRequest.email()).isEqualTo(user.getEmail());
 

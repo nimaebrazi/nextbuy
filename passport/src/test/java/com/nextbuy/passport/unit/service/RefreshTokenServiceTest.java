@@ -2,7 +2,6 @@ package com.nextbuy.passport.unit.service;
 
 
 import com.nextbuy.passport.common.advice.exception.BusinessException;
-import com.nextbuy.passport.configuration.JwtConfiguration;
 import com.nextbuy.passport.domain.RefreshToken;
 import com.nextbuy.passport.domain.User;
 import com.nextbuy.passport.dto.RefreshTokenContextDto;
@@ -11,6 +10,7 @@ import com.nextbuy.passport.service.RefreshTokenService;
 import com.nextbuy.passport.support.fixtures.AuthContexts;
 import com.nextbuy.passport.support.fixtures.RefreshTokens;
 import com.nextbuy.passport.support.fixtures.Users;
+import com.nextbuy.security.jwt.JwtProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -25,10 +25,13 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 
 @Tags({@Tag("unit"), @Tag("service")})
@@ -44,7 +47,7 @@ public class RefreshTokenServiceTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
-    JwtConfiguration jwtConfiguration;
+    JwtProperties jwtProperties;
 
     @InjectMocks
     private RefreshTokenService refreshTokenService;
@@ -56,7 +59,7 @@ public class RefreshTokenServiceTest {
         User user = Users.randomWithId();
         RefreshTokenContextDto context = AuthContexts.refreshTokenContext();
 
-        given(jwtConfiguration.refreshTokenExpiry()).willReturn(REFRESH_TOKEN_EXPIRY);
+        given(jwtProperties.refreshTokenExpiry()).willReturn(REFRESH_TOKEN_EXPIRY);
         Instant beforeCreate = Instant.now();
 
         String rawToken = refreshTokenService.create(user, context);
@@ -81,7 +84,7 @@ public class RefreshTokenServiceTest {
         assertThat(savedToken.getExpiresAt())
                 .isAfterOrEqualTo(beforeCreate.plusSeconds(REFRESH_TOKEN_EXPIRY))
                 .isBeforeOrEqualTo(afterCreate.plusSeconds(REFRESH_TOKEN_EXPIRY));
-        verify(jwtConfiguration).refreshTokenExpiry();
+        verify(jwtProperties).refreshTokenExpiry();
     }
 
     @Test
@@ -212,7 +215,7 @@ public class RefreshTokenServiceTest {
         RefreshToken existingToken = RefreshTokens.forUser(user, TOKEN_HASH);
         existingToken.setRevokedAt(null);
 
-        given(jwtConfiguration.refreshTokenExpiry()).willReturn(REFRESH_TOKEN_EXPIRY);
+        given(jwtProperties.refreshTokenExpiry()).willReturn(REFRESH_TOKEN_EXPIRY);
         Instant beforeRotate = Instant.now();
 
         String newRawToken = refreshTokenService.rotate(existingToken, user, context);
@@ -233,7 +236,7 @@ public class RefreshTokenServiceTest {
         assertThat(savedToken.getExpiresAt())
                 .isAfterOrEqualTo(beforeRotate.plusSeconds(REFRESH_TOKEN_EXPIRY))
                 .isBeforeOrEqualTo(afterRotate.plusSeconds(REFRESH_TOKEN_EXPIRY));
-        verify(jwtConfiguration).refreshTokenExpiry();
+        verify(jwtProperties).refreshTokenExpiry();
         // With current revoke(RefreshToken) logic, active token is not revoked during rotate
         assertThat(existingToken.getRevokedAt()).isNull();
     }
