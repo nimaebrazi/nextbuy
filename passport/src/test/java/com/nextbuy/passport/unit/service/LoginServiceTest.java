@@ -3,14 +3,23 @@ package com.nextbuy.passport.unit.service;
 
 import com.nextbuy.passport.common.advice.exception.BusinessException;
 import com.nextbuy.passport.domain.User;
-import com.nextbuy.passport.dto.*;
+import com.nextbuy.passport.dto.AuthTokenResponseDto;
+import com.nextbuy.passport.dto.LoginRequestDto;
+import com.nextbuy.passport.dto.RateLimitResult;
+import com.nextbuy.passport.dto.RefreshTokenContextDto;
 import com.nextbuy.passport.repository.UserRepository;
-import com.nextbuy.passport.service.JwtService;
 import com.nextbuy.passport.service.LoginService;
 import com.nextbuy.passport.service.RateLimitService;
 import com.nextbuy.passport.service.RefreshTokenService;
-import com.nextbuy.passport.support.fixtures.*;
+import com.nextbuy.passport.support.fixtures.AuthContexts;
+import com.nextbuy.passport.support.fixtures.AuthTokens;
+import com.nextbuy.passport.support.fixtures.Authorities;
+import com.nextbuy.passport.support.fixtures.LoginRequests;
+import com.nextbuy.passport.support.fixtures.RateLimitResults;
+import com.nextbuy.passport.support.fixtures.Users;
 import com.nextbuy.passport.support.utils.Fakers;
+import com.nextbuy.security.jwt.GenerateAccessTokenCommand;
+import com.nextbuy.security.jwt.JwtService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -28,12 +37,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @Tags({@Tag("unit"), @Tag("service")})
 @ExtendWith(MockitoExtension.class)
@@ -100,7 +111,7 @@ public class LoginServiceTest {
         given(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).willReturn(authentication);
         doReturn(authorities).when(authentication).getAuthorities();
         given(userRepository.findByEmail(req.email())).willReturn(Optional.of(user));
-        given(jwtService.generateAccessToken(any(GenerateJwtTokenDto.class))).willReturn(accessToken);
+        given(jwtService.generateAccessToken(any(GenerateAccessTokenCommand.class))).willReturn(accessToken);
         given(refreshTokenService.create(eq(user), any(RefreshTokenContextDto.class))).willReturn(refreshToken);
 
         AuthTokenResponseDto response = loginService.execute(req, refreshTokenContext);
@@ -111,7 +122,7 @@ public class LoginServiceTest {
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepository).findByEmail(req.email());
-        verify(jwtService).generateAccessToken(any(GenerateJwtTokenDto.class));
+        verify(jwtService).generateAccessToken(any(GenerateAccessTokenCommand.class));
         verify(refreshTokenService).create(eq(user), any(RefreshTokenContextDto.class));
     }
 

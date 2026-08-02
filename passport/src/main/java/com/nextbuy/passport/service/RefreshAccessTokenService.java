@@ -4,10 +4,11 @@ package com.nextbuy.passport.service;
 import com.nextbuy.passport.domain.RefreshToken;
 import com.nextbuy.passport.domain.User;
 import com.nextbuy.passport.dto.AuthTokenResponseDto;
-import com.nextbuy.passport.dto.GenerateJwtTokenDto;
 import com.nextbuy.passport.dto.RefreshTokenContextDto;
 import com.nextbuy.passport.dto.RefreshTokenRequestDto;
 import com.nextbuy.passport.repository.UserRepository;
+import com.nextbuy.security.jwt.GenerateAccessTokenCommand;
+import com.nextbuy.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class RefreshAccessTokenService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
         String accessToken = jwtService.generateAccessToken(
-                new GenerateJwtTokenDto(
+                new GenerateAccessTokenCommand(
                         user.getId(),
                         user.getEmail(),
                         user.getAuthorities())

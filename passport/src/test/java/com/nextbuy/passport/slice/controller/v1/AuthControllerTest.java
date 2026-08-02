@@ -1,7 +1,6 @@
 package com.nextbuy.passport.slice.controller.v1;
 
 
-import com.nextbuy.passport.configuration.JwtFilter;
 import com.nextbuy.passport.configuration.RateLimitFilter;
 import com.nextbuy.passport.controller.v1.AuthController;
 import com.nextbuy.passport.controller.v1.dto.RegisterUserDto;
@@ -9,37 +8,59 @@ import com.nextbuy.passport.dto.AuthTokenResponseDto;
 import com.nextbuy.passport.dto.RefreshTokenContextDto;
 import com.nextbuy.passport.dto.RefreshTokenRequestDto;
 import com.nextbuy.passport.dto.UserProfileDto;
-import com.nextbuy.passport.service.*;
+import com.nextbuy.passport.service.LoginService;
+import com.nextbuy.passport.service.ProfileService;
+import com.nextbuy.passport.service.RefreshAccessTokenService;
+import com.nextbuy.passport.service.RefreshTokenService;
+import com.nextbuy.passport.service.RegisterService;
 import com.nextbuy.passport.support.controller.ControllerTestBase;
 import com.nextbuy.passport.support.controller.JsonPaths;
 import com.nextbuy.passport.support.fixtures.AuthContexts;
 import com.nextbuy.passport.support.fixtures.AuthTokens;
 import com.nextbuy.passport.support.fixtures.LoginRequests;
 import com.nextbuy.passport.utils.RefreshTokenUtils;
+import com.nextbuy.security.auth.AuthPrincipal;
+import com.nextbuy.security.auth.JwtAuthenticationFilter;
+import com.nextbuy.security.jwt.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 
 @Tags({@Tag("slice"), @Tag("controller")})
 @WebMvcTest(controllers = AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(AuthControllerTest.AuthenticationPrincipalTestConfig.class)
 public class AuthControllerTest extends ControllerTestBase {
+
+    @TestConfiguration
+    static class AuthenticationPrincipalTestConfig implements WebMvcConfigurer {
+        @Override
+        public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+            resolvers.add(new AuthenticationPrincipalArgumentResolver());
+        }
+    }
 
     @MockitoBean
     private JwtService jwtService;
@@ -48,7 +69,7 @@ public class AuthControllerTest extends ControllerTestBase {
     private ProfileService profileService;
 
     @MockitoBean
-    private JwtFilter jwtFilter;
+    private JwtAuthenticationFilter jwtFilter;
 
     @MockitoBean
     private RateLimitFilter rateLimitFilter;
@@ -200,7 +221,7 @@ public class AuthControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("it should show user profile for authenticated profile request")
     void profile_WhenPrincipalExists_ShouldShowUserProfile() throws Exception {
-        var principal = new JwtFilter.AuthPrincipal(1L, "nima@gmail.com");
+        var principal = new AuthPrincipal(1L, "nima@gmail.com");
         var authentication = new UsernamePasswordAuthenticationToken(principal, null, List.of());
         var response = new UserProfileDto(1L, "nima@gmail.com");
 

@@ -1,12 +1,12 @@
 package com.nextbuy.passport.service;
 
 
-import com.nextbuy.passport.configuration.JwtConfiguration;
 import com.nextbuy.passport.domain.RefreshToken;
 import com.nextbuy.passport.domain.User;
 import com.nextbuy.passport.dto.RefreshTokenContextDto;
 import com.nextbuy.passport.exceptions.AuthExceptions;
 import com.nextbuy.passport.repository.RefreshTokenRepository;
+import com.nextbuy.security.jwt.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ import java.util.UUID;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final JwtConfiguration jwtConfiguration;
+    private final JwtProperties jwtProperties;
 
     @Transactional
     public String create(User user, RefreshTokenContextDto context) {
@@ -34,7 +34,7 @@ public class RefreshTokenService {
         RefreshToken refreshToken = RefreshToken.builder()
                 .tokenHash(tokenHash)
                 .user(user)
-                .expiresAt(Instant.now().plusSeconds(jwtConfiguration.refreshTokenExpiry()))
+                .expiresAt(Instant.now().plusSeconds(jwtProperties.refreshTokenExpiry()))
                 .ip(context.ip())
                 .userAgent(context.userAgent())
                 .device(context.device())

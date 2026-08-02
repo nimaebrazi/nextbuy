@@ -12,4 +12,8 @@ public final class Fakers {
     public static Faker faker() {
         return faker;
     }
+
+    public static String randomPassword() {
+        return faker.internet().password(8, 16, true, true, true);
+    }
 }

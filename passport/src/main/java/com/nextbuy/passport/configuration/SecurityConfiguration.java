@@ -2,7 +2,7 @@ package com.nextbuy.passport.configuration;
 
 
 import com.nextbuy.passport.service.RateLimitService;
-import jakarta.servlet.Filter;
+import com.nextbuy.security.auth.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +35,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final Filter jwtFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitService rateLimitService;
     private final UserDetailsService userDetailsService;
 
@@ -107,7 +107,7 @@ public class SecurityConfiguration {
         http.authenticationProvider(authenticationProvider());
 
         http.addFilterBefore(rateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

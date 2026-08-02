@@ -1,11 +1,11 @@
 package com.nextbuy.passport.repository.redis;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -19,7 +19,7 @@ public class RedisRefreshTokenRepository {
     private static final String KEY_PREFIX = "refresh-token:";
 
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public void save(RefreshTokenCacheDto token) {
         try {

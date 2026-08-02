@@ -50,8 +50,8 @@ spring:
 
 jwt:
   secret: "xTmCfNhvKwErW4qixunjfNRyAts4frpY"
-  access-token-expiry: 30
-  refresh-token-expiry: 40
+  access-token-expiry: 1800
+  refresh-token-expiry: 4233600
 
 
 bucket4j:
