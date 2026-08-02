@@ -2,19 +2,27 @@ package com.nextbuy.passport.controller.v1;
 
 import com.nextbuy.passport.common.advice.exception.BusinessException;
 import com.nextbuy.passport.common.advice.model.ApiResponse;
-import com.nextbuy.passport.configuration.JwtFilter;
 import com.nextbuy.passport.controller.v1.dto.RegisterUserDto;
 import com.nextbuy.passport.dto.AuthTokenResponseDto;
 import com.nextbuy.passport.dto.LoginRequestDto;
 import com.nextbuy.passport.dto.RefreshTokenRequestDto;
-import com.nextbuy.passport.service.*;
+import com.nextbuy.passport.service.LoginService;
+import com.nextbuy.passport.service.ProfileService;
+import com.nextbuy.passport.service.RefreshAccessTokenService;
+import com.nextbuy.passport.service.RefreshTokenService;
+import com.nextbuy.passport.service.RegisterService;
 import com.nextbuy.passport.utils.RefreshTokenUtils;
+import com.nextbuy.security.auth.AuthPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -56,7 +64,7 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
-    public ApiResponse<?> profile(@AuthenticationPrincipal JwtFilter.AuthPrincipal principal) {
+    public ApiResponse<?> profile(@AuthenticationPrincipal AuthPrincipal principal) {
         if (principal == null) {
             throw new BusinessException(
                     "Authentication required",
