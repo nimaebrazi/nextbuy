@@ -9,7 +9,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisConnectionDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,19 +17,18 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class Bucket4jConfiguration {
 
-    private final RedisProperties redisProperties;
-
+    private final DataRedisConnectionDetails redisConnectionDetails;
     @Value("${bucket4j.redis.database:1}")
     private int database;
 
     @Bean
     public RedisClient rateLimitRedisClient() {
+        var standalone = redisConnectionDetails.getStandalone();
         RedisURI redisUri = RedisURI.builder()
-                .withHost(redisProperties.getHost())
-                .withPort(redisProperties.getPort())
+                .withHost(standalone.getHost())
+                .withPort(standalone.getPort())
                 .withDatabase(database)
                 .build();
-
         return RedisClient.create(redisUri);
     }
 
