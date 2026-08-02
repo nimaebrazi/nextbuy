@@ -5,6 +5,8 @@ import com.nextbuy.passport.domain.User;
 import com.nextbuy.passport.dto.*;
 import com.nextbuy.passport.exceptions.AuthExceptions;
 import com.nextbuy.passport.repository.UserRepository;
+import com.nextbuy.security.jwt.GenerateAccessTokenCommand;
+import com.nextbuy.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,7 +42,7 @@ public class LoginService {
                 .orElseThrow(() -> new UsernameNotFoundException("Email Not Found"));
 
         var accessToken = jwtService.generateAccessToken(
-                new GenerateJwtTokenDto(
+                new GenerateAccessTokenCommand(
                         user.getId(),
                         user.getEmail(),
                         authentication.getAuthorities()
