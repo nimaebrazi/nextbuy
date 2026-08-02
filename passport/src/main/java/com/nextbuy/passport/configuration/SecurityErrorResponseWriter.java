@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 
@@ -14,7 +15,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class SecurityErrorResponseWriter {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public void write(HttpServletResponse response, int status,
                       String errorCode, String message, String path) throws IOException {
