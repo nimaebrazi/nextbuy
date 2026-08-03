@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record SubmitAdForModerationResponse(
-        UUID adId,
+        UUID id,
         String status,
         Instant submittedAt
 ) {

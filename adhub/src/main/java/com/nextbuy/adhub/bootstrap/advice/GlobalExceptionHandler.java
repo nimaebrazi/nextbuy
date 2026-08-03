@@ -20,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -180,6 +181,15 @@ public class GlobalExceptionHandler {
                 .toList();
         return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
                 msg("error.validation_failed"), validationErrors, request);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthorizationDenied(AuthorizationDeniedException ex,
+                                                                       WebRequest request) {
+
+        log.warn("Entity not found: {}", ex.getMessage());
+        return error(HttpStatus.FORBIDDEN, "FORBIDDEN",
+                msg("error.access_denied"), request);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
