@@ -8,15 +8,26 @@ public class CategoryDomainException extends DomainException {
         super(message);
     }
 
+    protected CategoryDomainException(String message, String messageKey, Object... args) {
+        super(message, messageKey, args);
+    }
+
     public static class CategoryCannotBeItsOwnParentException extends CategoryDomainException {
         public CategoryCannotBeItsOwnParentException(CategoryId categoryId) {
-            super("A category cannot be its own parent with id %s.".formatted(categoryId.value()));
+            super(
+                    "A category cannot be its own parent with id %s.".formatted(categoryId.value()),
+                    "category.error.cannot_be_own_parent"
+            );
         }
     }
 
     public static class FieldIsRequired extends CategoryDomainException {
         public FieldIsRequired(String field) {
-            super("Category '%s' field is required".formatted(field));
+            super(
+                    "Category '%s' field is required".formatted(field),
+                    "category.error.field_required",
+                    field
+            );
         }
     }
 }

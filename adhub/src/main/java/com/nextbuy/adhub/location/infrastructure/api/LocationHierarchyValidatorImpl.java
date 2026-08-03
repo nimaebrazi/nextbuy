@@ -41,18 +41,26 @@ public class LocationHierarchyValidatorImpl implements LocationHierarchyValidato
         var point = GeoPoint.ofNullable(selection.latitude(), selection.longitude());
 
         if (!countryRepository.existsById(countryId)) {
-            throw new LocationValidationException("countryId", "Country does not exist");
+            throw new LocationValidationException(
+                    "countryId",
+                    "Country does not exist",
+                    "location.error.country_not_found"
+            );
         }
 
         if (!provinceRepository.existsByIdAndCountryId(provinceId, countryId)) {
             throw new LocationValidationException(
-                    "provinceId", "Province does not exist in the given country"
+                    "provinceId",
+                    "Province does not exist in the given country",
+                    "location.error.province_not_in_country"
             );
         }
 
         if (!cityRepository.existsByIdAndProvinceId(cityId, provinceId)) {
             throw new LocationValidationException(
-                    "cityId", "City does not exist in the given province"
+                    "cityId",
+                    "City does not exist in the given province",
+                    "location.error.city_not_in_province"
             );
         }
 
@@ -60,12 +68,16 @@ public class LocationHierarchyValidatorImpl implements LocationHierarchyValidato
             Neighbourhood neighbourhood = neighbourhoodRepository.findById(neighbourhoodId)
                     .filter(n -> n.getCityId().equals(cityId))
                     .orElseThrow(() -> new LocationValidationException(
-                            "neighbourhoodId", "Neighbourhood does not exist in the given city")
+                            "neighbourhoodId",
+                            "Neighbourhood does not exist in the given city",
+                            "location.error.neighbourhood_not_in_city")
                     );
 
             if (point != null && neighbourhood.getBoundary() != null && !neighbourhood.contains(point)) {
                 throw new LocationValidationException(
-                        "location", "Point must be inside the selected neighbourhood"
+                        "location",
+                        "Point must be inside the selected neighbourhood",
+                        "location.error.point_outside_neighbourhood"
                 );
             }
         }
