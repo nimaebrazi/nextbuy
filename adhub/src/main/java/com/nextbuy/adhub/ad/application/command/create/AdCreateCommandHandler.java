@@ -74,7 +74,11 @@ public class AdCreateCommandHandler {
                     validated.longitude()
             );
         } catch (LocationValidationException ex) {
-            throw new ValidationException.InvalidLocationReference(ex.getField(), ex.reason());
+            throw new ValidationException.InvalidLocationReference(
+                    ex.getField(),
+                    ex.reason(),
+                    ex.getMessageKey()
+            );
         }
     }
 }
