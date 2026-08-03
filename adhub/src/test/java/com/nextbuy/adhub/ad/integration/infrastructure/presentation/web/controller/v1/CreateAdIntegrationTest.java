@@ -41,7 +41,7 @@ class CreateAdIntegrationTest {
     @DisplayName("It should persist a draft ad without publishing an integration event.")
     void createAd_persistsAdWithoutEventPublication() throws Exception {
         mockMvc.perform(post("/api/v1/ads")
-                        .header("X-Owner-Id", 42)
+                        .header("X-User-Id", 42)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -86,7 +86,7 @@ class CreateAdIntegrationTest {
     @DisplayName("It should publish AdSubmittedForModerationIntegrationEvent when a draft is submitted.")
     void submitForModeration_persistsStatusAndEventPublication() throws Exception {
         String createResponse = mockMvc.perform(post("/api/v1/ads")
-                        .header("X-Owner-Id", 42)
+                        .header("X-User-Id", 42)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -108,10 +108,10 @@ class CreateAdIntegrationTest {
         String adId = JsonPath.read(createResponse, "$.data.id");
 
         mockMvc.perform(post("/api/v1/ads/{adId}/submit", adId)
-                        .header("X-Owner-Id", 42))
+                        .header("X-User-Id", 42))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PENDING_MODERATION"))
-                .andExpect(jsonPath("$.data.adId").value(adId));
+                .andExpect(jsonPath("$.data.id").value(adId));
 
         String status = jdbcTemplate.queryForObject(
                 "SELECT status FROM ads WHERE id = ?::uuid",
