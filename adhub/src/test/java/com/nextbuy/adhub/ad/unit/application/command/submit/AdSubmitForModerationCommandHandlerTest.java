@@ -3,6 +3,7 @@ package com.nextbuy.adhub.ad.unit.application.command.submit;
 import com.nextbuy.adhub.ad.api.event.AdSubmittedForModerationIntegrationEvent;
 import com.nextbuy.adhub.ad.application.command.submit.AdSubmitForModerationCommand;
 import com.nextbuy.adhub.ad.application.command.submit.AdSubmitForModerationCommandHandler;
+import com.nextbuy.adhub.ad.application.event.AdDomainEventPublisher;
 import com.nextbuy.adhub.ad.application.event.AdEventMapper;
 import com.nextbuy.adhub.ad.domain.model.Ad;
 import com.nextbuy.adhub.ad.domain.model.AdId;
@@ -11,6 +12,7 @@ import com.nextbuy.adhub.ad.domain.repository.AdRepository;
 import com.nextbuy.adhub.shared.exception.ValidationException;
 import com.nextbuy.adhub.support.ad.fixtures.Ads;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +44,14 @@ class AdSubmitForModerationCommandHandlerTest {
 
     @InjectMocks
     private AdSubmitForModerationCommandHandler handler;
+
+    @BeforeEach
+    void setUp() {
+        handler = new AdSubmitForModerationCommandHandler(
+                adRepository,
+                new AdDomainEventPublisher(adEventMapper, eventPublisher)
+        );
+    }
 
     @Test
     @DisplayName("It should submit a draft for moderation and publish an integration event.")
