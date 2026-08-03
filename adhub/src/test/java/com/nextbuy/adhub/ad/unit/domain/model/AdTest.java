@@ -43,10 +43,7 @@ public class AdTest {
         assertThat(ad.getPrice()).isNotNull();
         assertThat(ad.getCreatedAt()).isNotNull();
         assertThat(ad.getUpdatedAt()).isEqualTo(ad.getCreatedAt());
-        assertThat(ad.getExpiresAt()).isCloseTo(
-                ad.getCreatedAt().plus(30, ChronoUnit.DAYS),
-                within(1, ChronoUnit.SECONDS)
-        );
+        assertThat(ad.getExpiresAt()).isNull();
         assertThat(ad.pullDomainEvents()).isEmpty();
     }
 

@@ -9,7 +9,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 public class MockMvcUtils {
 
-    public static final String OWNER_ID_HEADER = "X-Owner-Id";
+    public static final String HEADER_USER_ID = "X-User-Id";
 
     private final MockMvc mockMvc;
     private final JsonMapper jsonMapper;
@@ -42,8 +42,8 @@ public class MockMvcUtils {
             this.request = request;
         }
 
-        public RequestSpec ownerId(long ownerId) {
-            request.header(OWNER_ID_HEADER, ownerId);
+        public RequestSpec userId(long userId) {
+            request.header(HEADER_USER_ID, userId);
             return this;
         }
 
