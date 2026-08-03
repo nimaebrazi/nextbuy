@@ -33,6 +33,14 @@ public final class JsonPaths {
         return status().isNotImplemented();
     }
 
+    public static ResultMatcher statusUnprocessableEntity() {
+        return status().isUnprocessableContent();
+    }
+
+    public static ResultMatcher statusNotFound() {
+        return status().isNotFound();
+    }
+
     public static ResultMatcher message(String message) {
         return jsonPath(ApiJsonPaths.MESSAGE).value(message);
     }
@@ -41,16 +49,8 @@ public final class JsonPaths {
         return jsonPath(ApiJsonPaths.ERROR_CODE).value(errorCode);
     }
 
-    public static ResultMatcher id(String id) {
-        return jsonPath(ApiJsonPaths.ID).value(id);
-    }
-
-    public static ResultMatcher createdAt(String createdAt) {
-        return jsonPath(ApiJsonPaths.CREATED_AT).value(createdAt);
-    }
-
-    public static ResultMatcher adStatus(String status) {
-        return jsonPath(ApiJsonPaths.STATUS).value(status);
+    public static ResultMatcher data(String path, Object value) {
+        return jsonPath("%s.%s".formatted(ApiJsonPaths.DATA, path)).value(value);
     }
 
     public static ResultMatcher path(String path) {
@@ -76,5 +76,51 @@ public final class JsonPaths {
                 jsonPath(ApiJsonPaths.PATH).exists(),
                 jsonPath(ApiJsonPaths.PATH).isString()
         };
+    }
+
+    public static ResultMatcher[] successEnvelope(String path, String message) {
+        return concat(
+                new ResultMatcher[]{statusOk()},
+                apiStructure(),
+                new ResultMatcher[]{isSuccess(), path(path), message(message)}
+        );
+    }
+
+    public static ResultMatcher[] errorEnvelope(
+            ResultMatcher status, String errorCode, String message, String path) {
+        return new ResultMatcher[]{
+                status,
+                isNotSuccess(),
+                errorCode(errorCode),
+                message(message),
+                path(path)
+        };
+    }
+
+    public static ResultMatcher[] domainRuleViolation(String path, String message) {
+        return errorEnvelope(statusUnprocessableEntity(), "DOMAIN_RULE_VIOLATION", message, path);
+    }
+
+    public static ResultMatcher[] entityNotFound(String path) {
+        return errorEnvelope(statusNotFound(), "ENTITY_NOT_FOUND", "Resource not found.", path);
+    }
+
+    public static ResultMatcher[] validationError(String path, String message) {
+        return errorEnvelope(statusUnprocessableEntity(), "VALIDATION_ERROR", message, path);
+    }
+
+    @SafeVarargs
+    private static ResultMatcher[] concat(ResultMatcher[]... groups) {
+        int size = 0;
+        for (ResultMatcher[] group : groups) {
+            size += group.length;
+        }
+        ResultMatcher[] result = new ResultMatcher[size];
+        int offset = 0;
+        for (ResultMatcher[] group : groups) {
+            System.arraycopy(group, 0, result, offset, group.length);
+            offset += group.length;
+        }
+        return result;
     }
 }
