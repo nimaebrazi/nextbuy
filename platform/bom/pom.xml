@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.nextbuy</groupId>
+    <artifactId>platform-bom</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>platform-bom</name>
+    <description>Bill of Materials for nextbuy platform libraries</description>
+
+    <properties>
+        <nextbuy.platform.version>0.0.1-SNAPSHOT</nextbuy.platform.version>
+        <nextbuy.security.version>0.0.1-SNAPSHOT</nextbuy.security.version>
+        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.nextbuy</groupId>
+                <artifactId>platform-observability</artifactId>
+                <version>${nextbuy.platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nextbuy</groupId>
+                <artifactId>platform-test</artifactId>
+                <version>${nextbuy.platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nextbuy</groupId>
+                <artifactId>security</artifactId>
+                <version>${nextbuy.security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
