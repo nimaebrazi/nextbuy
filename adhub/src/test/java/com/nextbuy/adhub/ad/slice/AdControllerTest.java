@@ -13,14 +13,16 @@ import com.nextbuy.adhub.ad.infrastructure.presentation.web.controller.v1.dto.Ad
 import com.nextbuy.adhub.ad.infrastructure.presentation.web.controller.v1.dto.CreateAdResponse;
 import com.nextbuy.adhub.ad.infrastructure.presentation.web.controller.v1.dto.SubmitAdForModerationResponse;
 import com.nextbuy.adhub.ad.infrastructure.presentation.web.controller.v1.mapper.AdWebMapper;
-import com.nextbuy.adhub.support.ad.controller.ControllerTestBase;
-import com.nextbuy.adhub.support.ad.controller.JsonPaths;
+import com.nextbuy.adhub.bootstrap.config.LocaleConfig;
 import com.nextbuy.adhub.support.ad.fixtures.AdRequests;
+import com.nextbuy.platform.test.web.ControllerTestBase;
+import com.nextbuy.platform.test.web.JsonPaths;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
@@ -34,6 +36,7 @@ import static org.mockito.BDDMockito.given;
 @Tags({@Tag("slice"), @Tag("controller")})
 @WebMvcTest(controllers = AdController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(LocaleConfig.class)
 public class AdControllerTest extends ControllerTestBase {
 
     private static final String ADS_PATH = "/api/v1/ads";
