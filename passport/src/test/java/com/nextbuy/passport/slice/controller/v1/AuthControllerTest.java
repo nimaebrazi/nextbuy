@@ -13,12 +13,12 @@ import com.nextbuy.passport.service.ProfileService;
 import com.nextbuy.passport.service.RefreshAccessTokenService;
 import com.nextbuy.passport.service.RefreshTokenService;
 import com.nextbuy.passport.service.RegisterService;
-import com.nextbuy.passport.support.controller.ControllerTestBase;
-import com.nextbuy.passport.support.controller.JsonPaths;
+import com.nextbuy.platform.test.web.JsonPaths;
 import com.nextbuy.passport.support.fixtures.AuthContexts;
 import com.nextbuy.passport.support.fixtures.AuthTokens;
 import com.nextbuy.passport.support.fixtures.LoginRequests;
 import com.nextbuy.passport.utils.RefreshTokenUtils;
+import com.nextbuy.platform.test.web.ControllerTestBase;
 import com.nextbuy.security.auth.AuthPrincipal;
 import com.nextbuy.security.auth.JwtAuthenticationFilter;
 import com.nextbuy.security.jwt.JwtService;
@@ -27,9 +27,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -102,14 +102,12 @@ public class AuthControllerTest extends ControllerTestBase {
         given(loginService.execute(eq(request), eq(context))).willReturn(response);
 
 
-        mockMvcUtils.performPost("/api/v1/login", request)
-                .andExpect(JsonPaths.statusOk())
-                .andExpectAll(JsonPaths.apiStructure())
-                .andExpect(JsonPaths.isSuccess())
-                .andExpect(JsonPaths.path("/api/v1/login"))
-                .andExpect(JsonPaths.message("User did login successfully"))
-                .andExpect(JsonPaths.accessToken(response.accessToken()))
-                .andExpect(JsonPaths.refreshToken(response.refreshToken()));
+        mockMvcUtils.post("/api/v1/login")
+                .body(request)
+                .exchange()
+                .andExpectAll(JsonPaths.successEnvelope("/api/v1/login", "User did login successfully"))
+                .andExpect(JsonPaths.data("accessToken", response.accessToken()))
+                .andExpect(JsonPaths.data("refreshToken", response.refreshToken()));
     }
 
 
@@ -131,14 +129,12 @@ public class AuthControllerTest extends ControllerTestBase {
         given(registerService.execute(eq(request), eq(context))).willReturn(response);
 
 
-        mockMvcUtils.performPost("/api/v1/register", request)
-                .andExpect(JsonPaths.statusOk())
-                .andExpectAll(JsonPaths.apiStructure())
-                .andExpect(JsonPaths.path("/api/v1/register"))
-                .andExpect(JsonPaths.isSuccess())
-                .andExpect(JsonPaths.message("User did registered successfully"))
-                .andExpect(JsonPaths.accessToken("my-access-token"))
-                .andExpect(JsonPaths.refreshToken("my-refresh-token"));
+        mockMvcUtils.post("/api/v1/register")
+                .body(request)
+                .exchange()
+                .andExpectAll(JsonPaths.successEnvelope("/api/v1/register", "User did registered successfully"))
+                .andExpect(JsonPaths.data("accessToken", "my-access-token"))
+                .andExpect(JsonPaths.data("refreshToken", "my-refresh-token"));
 
         verify(registerService).execute(eq(request), eq(context));
         verify(refreshTokenUtils).buildContext(any(HttpServletRequest.class));
@@ -164,14 +160,12 @@ public class AuthControllerTest extends ControllerTestBase {
         given(refreshAccessTokenService.execute(request, context)).willReturn(response);
 
 
-        mockMvcUtils.performPost("/api/v1/refresh-token", request).
-                andExpect(JsonPaths.statusOk())
-                .andExpectAll(JsonPaths.apiStructure())
-                .andExpect(JsonPaths.path("/api/v1/refresh-token"))
-                .andExpect(JsonPaths.isSuccess())
-                .andExpect(JsonPaths.message("Refresh token issued successfully."))
-                .andExpect(JsonPaths.accessToken("my-access-token"))
-                .andExpect(JsonPaths.refreshToken("my-refresh-token"));
+        mockMvcUtils.post("/api/v1/refresh-token")
+                .body(request)
+                .exchange()
+                .andExpectAll(JsonPaths.successEnvelope("/api/v1/refresh-token", "Refresh token issued successfully."))
+                .andExpect(JsonPaths.data("accessToken", "my-access-token"))
+                .andExpect(JsonPaths.data("refreshToken", "my-refresh-token"));
 
         verify(refreshTokenUtils).buildContext(any(HttpServletRequest.class));
         verify(refreshAccessTokenService).execute(request, context);
@@ -182,12 +176,10 @@ public class AuthControllerTest extends ControllerTestBase {
     void logout_ItShouldLogoutUser() throws Exception {
         var request = new RefreshTokenRequestDto("my-refresh-token");
 
-        mockMvcUtils.performPost("/api/v1/logout", request)
-                .andExpect(JsonPaths.statusOk())
-                .andExpectAll(JsonPaths.apiStructure())
-                .andExpect(JsonPaths.path("/api/v1/logout"))
-                .andExpect(JsonPaths.isSuccess())
-                .andExpect(JsonPaths.message("Logged out successfully"));
+        mockMvcUtils.post("/api/v1/logout")
+                .body(request)
+                .exchange()
+                .andExpectAll(JsonPaths.successEnvelope("/api/v1/logout", "Logged out successfully"));
 
         verify(refreshTokenService).revoke("my-refresh-token");
     }
@@ -197,7 +189,9 @@ public class AuthControllerTest extends ControllerTestBase {
     void logout_WhenRefreshTokenIsBlank_ShouldReturnValidationError() throws Exception {
         var request = new RefreshTokenRequestDto("");
 
-        mockMvcUtils.performPost("/api/v1/logout", request)
+        mockMvcUtils.post("/api/v1/logout")
+                .body(request)
+                .exchange()
                 .andExpect(JsonPaths.statusBadRequest())
                 .andExpectAll(JsonPaths.apiStructure())
                 .andExpect(JsonPaths.isNotSuccess())
@@ -209,7 +203,8 @@ public class AuthControllerTest extends ControllerTestBase {
     @Test
     @DisplayName("it should reject profile request when authentication principal is missing")
     void profile_WhenPrincipalIsMissing_ShouldReturnAuthenticationRequired() throws Exception {
-        mockMvcUtils.performGet("/api/v1/profile")
+        mockMvcUtils.get("/api/v1/profile")
+                .exchange()
                 .andExpect(JsonPaths.statusUnauthorized())
                 .andExpectAll(JsonPaths.apiStructure())
                 .andExpect(JsonPaths.path("/api/v1/profile"))
@@ -230,14 +225,11 @@ public class AuthControllerTest extends ControllerTestBase {
         try {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            mockMvcUtils.performGet("/api/v1/profile")
-                    .andExpect(JsonPaths.statusOk())
-                    .andExpectAll(JsonPaths.apiStructure())
-                    .andExpect(JsonPaths.path("/api/v1/profile"))
-                    .andExpect(JsonPaths.isSuccess())
-                    .andExpect(JsonPaths.message("User profile fetch successfully."))
-                    .andExpect(JsonPaths.profileId(1L))
-                    .andExpect(JsonPaths.profileEmail("nima@gmail.com"));
+            mockMvcUtils.get("/api/v1/profile")
+                    .exchange()
+                    .andExpectAll(JsonPaths.successEnvelope("/api/v1/profile", "User profile fetch successfully."))
+                    .andExpect(JsonPaths.data("id", 1L))
+                    .andExpect(JsonPaths.data("email", "nima@gmail.com"));
         } finally {
             SecurityContextHolder.clearContext();
         }
